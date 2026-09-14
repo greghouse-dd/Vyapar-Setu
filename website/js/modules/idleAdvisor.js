@@ -157,8 +157,40 @@ window.IdleAdvisorModule = (function() {
       </div>
     `;
 
-    container.querySelector('#btn-run-idle-advisor').addEventListener('click', () => {
-      window.AppController?.showToast('Idle/Deadheading Advisor analyzed 7 ports. Backhaul Triangulation saves $97,500!', 'success');
+    const idleBtn = container.querySelector('#btn-run-idle-advisor');
+    idleBtn.addEventListener('click', async () => {
+      idleBtn.disabled = true;
+      idleBtn.innerHTML = `⌛ Analyzing...`;
+
+      if (window.BACKEND_ONLINE) {
+        try {
+          const result = await window.ApiClient.post('/idle-advisor', {
+            vessel_class: 'Panamax',
+            current_port: 'Paradip',
+            dwt: 75000,
+            vlsfo_price_usd: 620,
+            forecast_horizon_weeks: 4,
+          });
+          const best = result.recommended_strategy;
+          const net = result.net_value_usd;
+          window.AppController?.showToast(
+            `✅ Idle Advisor: ${best?.toUpperCase()} recommended. Net value: $${(net||0).toLocaleString()}`,
+            'success'
+          );
+          idleBtn.disabled = false;
+          idleBtn.innerHTML = `⚓ Analyze Vessel Positions`;
+          return;
+        } catch (err) {
+          console.warn('Idle advisor API error, fallback to mock:', err);
+        }
+      }
+
+      // Mock fallback
+      setTimeout(() => {
+        window.AppController?.showToast('Idle/Deadheading Advisor analyzed 7 ports. Backhaul Triangulation saves $97,500!', 'success');
+        idleBtn.disabled = false;
+        idleBtn.innerHTML = `⚓ Analyze Vessel Positions`;
+      }, 700);
     });
 
     container.querySelector('#btn-select-backhaul').addEventListener('click', () => {

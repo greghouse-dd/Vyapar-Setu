@@ -1,0 +1,16 @@
+# Virtual Environments & Python cache
+.vsbackend/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Temporary / Lock files
+~$*.pptx
+~$*.docx
+~$*.xlsx
+.DS_Store
+Thumbs.db

@@ -106,7 +106,44 @@ window.TenderModule = (function() {
       window.print();
     });
 
-    container.querySelector('#btn-download-tender')?.addEventListener('click', () => {
+    container.querySelector('#btn-download-tender')?.addEventListener('click', async () => {
+      if (window.BACKEND_ONLINE) {
+        try {
+          await window.ApiClient.download(
+            '/generate-tender',
+            {
+              recommendation: {
+                vessel_class: 'Capesize',
+                timing: 'fix_now',
+                origin: 'Australia',
+                lot_size_tonnes: 180000,
+                n_voyages: 1,
+                voyage_days: 35,
+                freight_cost_usd: 2610000,
+                demurrage_cost_usd: 36000,
+                quality_penalty_usd: 0,
+                total_cost_usd: 2646000,
+                total_cost_inr: 220941000,
+                cost_per_tonne_usd: 14.7,
+                cost_per_tonne_inr: 1227.45,
+                rationale: 'Single Capesize voyage from Australia — fix_now. Voyage: 35d sea + 35d laycan = 70d total.',
+              },
+              shap_drivers: [
+                { driver: 'Freight rate (spot × timing premium)', contribution_usd: 2610000, contribution_pct: 98.6, direction: 'positive' },
+                { driver: 'Demurrage (excess berth wait)', contribution_usd: 36000, contribution_pct: 1.4, direction: 'positive' },
+              ],
+              request_payload: { destination_port: 'Paradip', cargo_tonnes: 180000, commodity: 'Coal', latest_arrival_date_days: 70 },
+              generated_by: 'Vyapar Setu v1.0',
+            },
+            'NIT-SAIL-2026-089.docx'
+          );
+          window.AppController?.showToast('✅ Tender Specification downloaded (English .docx)', 'success');
+          return;
+        } catch (err) {
+          console.warn('Tender download API error:', err);
+        }
+      }
+      // Mock fallback
       window.AppController?.showToast('Downloaded Tender Specification (NIT-SAIL-2026-089.docx) in English + ' + activeLang, 'success');
     });
   }
