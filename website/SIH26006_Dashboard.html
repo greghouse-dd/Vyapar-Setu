@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vyapar Setu — Trade &amp; Logistics Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:    #FBF3E3;
+    --paper-2:  #F4E9D2;
+    --card:     #FFFDF7;
+    --rule:     #DEC79C;
+    --rule-lite:#EBDCBB;
+    --ink:      #2A2016;
+    --ink-dim:  #7C6A4E;
+    --ink-faint:#A6936F;
+    --brass:    #B9812E;
+    --brass-bg: rgba(185,129,46,0.12);
+    --teal:     #1E6E63;
+    --teal-bg:  rgba(30,110,99,0.10);
+    --red:      #A6392C;
+    --red-bg:   rgba(166,57,44,0.09);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.serif{font-family:'Fraunces',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  ::selection{background:var(--brass-bg);color:var(--ink);}
+  button,select{font-family:inherit;}
+
+  #app{min-height:100vh;display:flex;flex-direction:column;}
+
+  /* ===== header ===== */
+  header{border-bottom:2px solid var(--ink);background:var(--paper);padding:18px 26px;position:sticky;top:0;z-index:30;}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:11px;}
+  .brand svg{flex-shrink:0;}
+  .brand h1{font-size:19px;font-weight:600;letter-spacing:.01em;margin:0;color:var(--ink);}
+  .brand .sub{color:var(--ink-dim);font-size:12px;margin-top:1px;}
+  .headright{display:flex;align-items:center;gap:22px;}
+  .headstats{display:flex;gap:22px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-dim);}
+  .headstats b{color:var(--ink);font-weight:600;}
+  .headstats .lbl{color:var(--ink-faint);font-family:'Inter',sans-serif;font-size:10.5px;display:block;margin-top:1px;}
+
+  .btn{border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:9px 16px;font-size:13px;font-weight:500;border-radius:3px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
+  .btn:hover{background:#42331F;}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule);}
+  .btn.ghost:hover{border-color:var(--ink);}
+  .btn.small{padding:6px 11px;font-size:12px;}
+  .btn.danger{background:var(--red);border-color:var(--red);}
+  .btn.danger:hover{background:#8A2E23;}
+  .btn.teal{background:var(--teal);border-color:var(--teal);}
+  .btn.teal:hover{background:#175650;}
+
+  /* ===== body grid ===== */
+  #body-grid{flex:1;display:grid;grid-template-columns:216px 340px 1fr;min-height:0;}
+  @media (max-width:1080px){#body-grid{grid-template-columns:1fr;}}
+
+  /* ===== filter rail ===== */
+  aside.filters{border-right:1px solid var(--rule);padding:18px 16px;background:var(--paper-2);overflow-y:auto;max-height:calc(100vh - 76px);}
+  .filt-title{font-size:10.5px;letter-spacing:.03em;color:var(--ink-faint);margin:0 0 9px 0;font-weight:600;text-transform:uppercase;}
+  .filt-block{margin-bottom:18px;}
+  input[type=text],input[type=number],input[type=date],select{
+    width:100%;background:var(--card);border:1px solid var(--rule);color:var(--ink);
+    padding:8px 10px;font-size:13px;border-radius:3px;
+  }
+  select:focus,input:focus{outline:1px solid var(--brass);outline-offset:0;}
+  input[type=range]{width:100%;accent-color:var(--brass);}
+  .range-labels{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);margin-top:5px;}
+  .clear-btn{background:none;border:1px solid var(--rule);color:var(--ink-dim);padding:7px 12px;font-size:12px;border-radius:3px;cursor:pointer;width:100%;}
+  .clear-btn:hover{border-color:var(--ink-dim);color:var(--ink);}
+
+  details.filt-collapse{border:1px solid var(--rule);border-radius:3px;background:var(--card);margin-bottom:18px;}
+  details.filt-collapse summary{list-style:none;cursor:pointer;padding:9px 11px;font-size:12px;font-weight:600;color:var(--ink-dim);display:flex;justify-content:space-between;align-items:center;}
+  details.filt-collapse summary::-webkit-details-marker{display:none;}
+  details.filt-collapse summary::after{content:'+';color:var(--ink-faint);font-size:14px;}
+  details.filt-collapse[open] summary::after{content:'–';}
+  details.filt-collapse .inner{padding:2px 11px 11px 11px;}
+
+  .commodity-row{display:flex;align-items:center;gap:6px;padding:3px 0;}
+  .commodity-row label{flex:1;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-dim);cursor:pointer;}
+  .commodity-row label:hover{color:var(--ink);}
+  .commodity-row input[type=checkbox]{accent-color:var(--brass);width:12px;height:12px;}
+  .del-x{background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:13px;line-height:1;padding:2px 4px;}
+  .del-x:hover{color:var(--red);}
+  .del-x:disabled{opacity:.25;cursor:not-allowed;}
+  .add-commodity-row{display:flex;gap:6px;margin-top:8px;}
+  .add-commodity-row input{flex:1;}
+
+  /* ===== list pane ===== */
+  section.listpane{border-right:1px solid var(--rule);overflow-y:auto;max-height:calc(100vh - 76px);background:var(--paper);}
+  .list-toolbar{position:sticky;top:0;background:var(--paper);padding:14px 16px 12px 16px;border-bottom:1px solid var(--rule);z-index:5;}
+  .list-toolbar-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+  .list-toolbar-row:last-child{margin-bottom:0;}
+  .list-toolbar h2{font-size:15px;margin:0;font-weight:600;flex:1;}
+  .cat-select{max-width:150px;font-size:12px;padding:7px 8px;}
+  .list-count{font-size:11px;color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;}
+
+  .card{padding:14px 16px;border-bottom:1px solid var(--rule-lite);cursor:pointer;border-left:3px solid transparent;transition:background .12s ease,border-color .12s ease;}
+  .card:hover{background:var(--brass-bg);}
+  .card.active{background:var(--brass-bg);border-left-color:var(--brass);}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .card-id{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);}
+  .card-title{font-size:14px;font-weight:600;color:var(--ink);margin:3px 0 7px 0;line-height:1.28;font-family:'Fraunces',serif;}
+  .tag{font-size:10px;font-family:'IBM Plex Mono',monospace;padding:2px 7px;border-radius:2px;white-space:nowrap;}
+  .tag.SINGLE_SPOT{background:var(--teal-bg);color:var(--teal);}
+  .tag.SHORT_TERM{background:var(--brass-bg);color:var(--brass);}
+  .tag.LONG_TERM{background:#EAE2F2;color:#6B4F94;}
+  .card-meta{display:flex;gap:12px;font-size:11.5px;color:var(--ink-dim);flex-wrap:wrap;}
+  .card-meta .route{font-family:'IBM Plex Mono',monospace;font-size:10.5px;}
+  .card-officer{display:flex;align-items:center;gap:6px;margin-top:8px;}
+  .avatar{width:17px;height:17px;border-radius:50%;background:var(--teal);color:#fff;font-size:8.5px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .card-officer span{font-size:11px;color:var(--ink-faint);}
+  .card-bud{margin-top:9px;}
+  .bud-bar{height:4px;background:var(--rule-lite);border-radius:2px;overflow:hidden;}
+  .bud-fill{height:100%;border-radius:2px;}
+  .bud-row{display:flex;justify-content:space-between;font-size:10.5px;font-family:'IBM Plex Mono',monospace;color:var(--ink-faint);margin-top:4px;}
+  .empty{padding:50px 22px;text-align:center;color:var(--ink-faint);font-size:13px;}
+
+  /* ===== detail pane ===== */
+  section.detail{overflow-y:auto;max-height:calc(100vh - 76px);display:flex;}
+  .detail-empty{display:flex;align-items:center;justify-content:center;width:100%;color:var(--ink-faint);font-size:13px;flex-direction:column;gap:10px;}
+  .detail-empty .glyph{font-size:32px;opacity:.4;font-family:'Fraunces',serif;}
+
+  .detail-nav{width:150px;flex-shrink:0;border-right:1px solid var(--rule);background:var(--paper-2);padding:20px 0;}
+  .detail-nav .dn-head{padding:0 16px 14px 16px;border-bottom:1px solid var(--rule);margin-bottom:8px;}
+  .detail-nav .dn-id{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-faint);}
+  .detail-nav button{
+    width:100%;text-align:left;background:none;border:none;border-left:3px solid transparent;
+    padding:10px 16px;font-size:12.5px;color:var(--ink-dim);cursor:pointer;
+    display:flex;align-items:center;gap:9px;
+  }
+  .detail-nav button:hover{color:var(--ink);background:rgba(185,129,46,0.07);}
+  .detail-nav button.active{color:var(--ink);font-weight:600;border-left-color:var(--brass);background:var(--brass-bg);}
+  .detail-nav button svg{flex-shrink:0;opacity:.85;}
+
+  .detail-content{flex:1;padding:24px 30px 60px 30px;min-width:0;}
+  .d-head{margin-bottom:18px;}
+  .d-id{font-family:'IBM Plex Mono',monospace;color:var(--ink-faint);font-size:11.5px;}
+  .d-title{font-size:22px;font-weight:600;margin:5px 0 10px 0;color:var(--ink);line-height:1.25;font-family:'Fraunces',serif;}
+  .d-badges{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .d-officer{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-dim);}
+  .d-officer .avatar{width:20px;height:20px;font-size:9.5px;}
+  .d-actions{display:flex;gap:8px;margin-top:14px;}
+
+  .panel{border:1px solid var(--rule);background:var(--card);border-radius:4px;padding:18px 20px;margin-bottom:16px;}
+  .panel h3{font-size:11px;letter-spacing:.03em;color:var(--ink-faint);margin:0 0 15px 0;font-weight:600;text-transform:uppercase;}
+
+  /* overview tiles */
+  .tile-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+  @media (max-width:820px){.tile-row{grid-template-columns:1fr;}}
+  .tile{border:1px solid var(--rule);background:var(--card);border-radius:4px;padding:15px 16px;}
+  .tile .t-lbl{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.02em;margin-bottom:6px;}
+  .tile .t-val{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:var(--ink);}
+  .tile .t-sub{font-size:11px;color:var(--ink-dim);margin-top:3px;}
+
+  /* budget gauge */
+  .gauge-wrap{display:flex;align-items:center;gap:22px;}
+  .gauge-figs{flex:1;}
+  .gauge-figs .big{font-family:'IBM Plex Mono',monospace;font-size:23px;font-weight:600;color:var(--ink);}
+  .gauge-figs .lbl{font-size:11.5px;color:var(--ink-faint);margin-top:2px;}
+  .gauge-figs .of{font-size:12px;color:var(--ink-dim);margin-top:10px;font-family:'IBM Plex Mono',monospace;}
+
+  .cta{border-radius:4px;padding:16px 18px;border:1px solid;display:flex;gap:14px;align-items:flex-start;}
+  .cta .dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+  .cta .head{font-size:11px;letter-spacing:.03em;margin-bottom:5px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+  .cta .body{font-size:13.5px;line-height:1.55;color:var(--ink);}
+  .cta.healthy{border-color:var(--teal);background:var(--teal-bg);}
+  .cta.healthy .dot{background:var(--teal);}
+  .cta.healthy .head{color:var(--teal);}
+  .cta.warning{border-color:var(--brass);background:var(--brass-bg);}
+  .cta.warning .dot{background:var(--brass);}
+  .cta.warning .head{color:var(--brass);}
+  .cta.critical{border-color:var(--red);background:var(--red-bg);}
+  .cta.critical .dot{background:var(--red);}
+  .cta.critical .head{color:var(--red);}
+
+  /* nautical chart */
+  .route-ports{display:flex;justify-content:space-between;margin-bottom:16px;}
+  .route-port{font-size:13px;}
+  .route-port .code{font-family:'IBM Plex Mono',monospace;color:var(--ink);font-weight:600;font-size:16px;}
+  .route-port .name{color:var(--ink-faint);font-size:11.5px;margin-top:2px;}
+  .route-port.dest{text-align:right;}
+  .chart-frame{border:1px solid var(--rule);border-radius:4px;background:
+      repeating-linear-gradient(0deg, rgba(185,129,46,0.06) 0, rgba(185,129,46,0.06) 1px, transparent 1px, transparent 26px),
+      repeating-linear-gradient(90deg, rgba(185,129,46,0.06) 0, rgba(185,129,46,0.06) 1px, transparent 1px, transparent 26px),
+      var(--card);
+    padding:6px;
+  }
+  .route-svg{width:100%;height:120px;display:block;}
+  .route-info{display:flex;justify-content:space-between;margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-faint);}
+  .route-info b{color:var(--ink-dim);font-weight:500;}
+  .mt-row{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:16px;border-top:1px solid var(--rule-lite);flex-wrap:wrap;gap:10px;}
+  .mt-caption{font-size:11.5px;color:var(--ink-faint);}
+
+  /* meta table */
+  .meta-table{width:100%;border-collapse:collapse;}
+  .meta-table td{padding:9px 0;font-size:13px;border-bottom:1px solid var(--rule-lite);}
+  .meta-table td:first-child{color:var(--ink-faint);width:190px;font-size:11px;letter-spacing:.02em;text-transform:uppercase;}
+  .meta-table td:last-child{color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;}
+  .meta-table tr:last-child td{border-bottom:none;}
+  .note-box{margin-top:14px;font-size:13px;color:var(--ink-dim);line-height:1.6;font-style:italic;padding-top:14px;border-top:1px solid var(--rule-lite);}
+
+  footer{padding:11px 26px;border-top:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);display:flex;justify-content:space-between;background:var(--paper-2);}
+
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--ink-faint);}
+
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(42,32,22,0.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;z-index:100;overflow-y:auto;}
+  .modal{background:var(--card);border:1px solid var(--rule);border-radius:6px;width:100%;max-width:640px;padding:26px 28px 24px 28px;}
+  .modal h2{font-size:19px;margin:0 0 4px 0;font-weight:600;}
+  .modal .modal-sub{font-size:12.5px;color:var(--ink-faint);margin-bottom:20px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+  .form-grid .full{grid-column:1/-1;}
+  .field label{display:block;font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.02em;margin-bottom:5px;font-weight:600;}
+  .modal-actions{display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:16px;border-top:1px solid var(--rule-lite);}
+  .modal-actions .right{display:flex;gap:8px;}
+  .field-hint{font-size:11px;color:var(--ink-faint);margin-top:4px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brandrow">
+      <div class="brand">
+        <svg width="28" height="28" viewBox="0 0 30 30" fill="none">
+          <path d="M4 21c2 2 4 2 6 0s4-2 6 0 4 2 6 0 4-2 4-2" stroke="#B9812E" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M15 4v13" stroke="#2A2016" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M15 6l7 3-7 8-7-8 7-3z" stroke="#2A2016" stroke-width="1.4" fill="none" stroke-linejoin="round"/>
+        </svg>
+        <div>
+          <h1>Vyapar Setu</h1>
+          <div class="sub">Trade &amp; logistics ledger — coastal &amp; overseas contracts</div>
+        </div>
+      </div>
+      <div class="headright">
+        <div class="headstats" id="headstats"></div>
+        <button class="btn" id="btn-new">＋ New contract</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="body-grid">
+    <aside class="filters" id="filters"></aside>
+    <section class="listpane" id="listpane"></section>
+    <section class="detail" id="detail"></section>
+  </div>
+
+  <footer>
+    <span>LOCAL LEDGER · <span id="dbcount"></span> CONTRACTS ON FILE</span>
+    <span id="clock">REF DATE 2026-09-10</span>
+  </footer>
+</div>
+
+<div id="modal-root"></div>
+
+<script>
+/* =========================================================
+   DATA — India-centric trade desk
+   ========================================================= */
+const PORTS = {
+  INKAN: {name:'Kandla', lat:23.03, lon:70.22},
+  INMUN: {name:'Mundra', lat:22.84, lon:69.72},
+  INNSA: {name:'Nhava Sheva (JNPT)', lat:18.95, lon:72.95},
+  INDAH: {name:'Dahej LNG Terminal', lat:21.70, lon:72.55},
+  INPPP: {name:'Paradip', lat:20.32, lon:86.61},
+  INVAD: {name:'Vadinar', lat:22.47, lon:69.65},
+  INCCU: {name:'Kolkata', lat:22.57, lon:88.31},
+  INVTZ: {name:'Visakhapatnam', lat:17.68, lon:83.22},
+  INCOK: {name:'Cochin', lat:9.93, lon:76.26},
+  INTUT: {name:'Tuticorin', lat:8.76, lon:78.13},
+  AEJEA: {name:'Jebel Ali', lat:24.99, lon:55.06},
+  AEFJR: {name:'Fujairah', lat:25.11, lon:56.34},
+  QAMFF: {name:'Ras Laffan', lat:25.91, lon:51.55},
+  NLRTM: {name:'Port of Rotterdam', lat:51.92, lon:4.48},
+  GBFXT: {name:'Felixstowe', lat:51.96, lon:1.35},
+  AUNTL: {name:'Newcastle', lat:-32.93, lon:151.78},
+};
+
+let COMMODITIES = ['Basmati Rice','Liquefied Natural Gas','Iron Ore Pellets','Crude Oil (Brent)','Assam Tea','Thermal Coal','Cotton Yarn','Cardamom'];
+const OFFICERS = ['Priya Nair · Mumbai Desk','Arjun Mehta · Delhi Desk','Kavya Suresh · Chennai Desk','Rohit Bhatia · Gujarat Desk','Ishaan Roy · Kolkata Desk','Meera Iyer · Vizag Desk'];
+
+let CONTRACTS = [
+  {id:'CNT-2026-001', title:'Kandla Basmati Rice Export — UAE', category:'SINGLE_SPOT',
+   commodityName:'Basmati Rice', commodityCode:'COMM-AGR-101', quantity:18000, unit:'Metric Tons',
+   startDate:'2026-09-02', endDate:'2026-09-20', originPortCode:'INKAN', destPortCode:'AEJEA',
+   vesselImo:9788452, vesselName:'MV Konkan Prince', maxBudget:950000000, committedSpend:780000000,
+   officer:'Rohit Bhatia · Gujarat Desk', note:'Buyer has asked for early delivery ahead of Diwali demand — keep an eye on the loading schedule.'},
+  {id:'CNT-2026-002', title:'Ras Laffan LNG Import — Dahej Terminal', category:'SHORT_TERM',
+   commodityName:'Liquefied Natural Gas', commodityCode:'COMM-LNG-004', quantity:45000, unit:'Metric Tons',
+   startDate:'2026-08-10', endDate:'2026-11-10', originPortCode:'QAMFF', destPortCode:'INDAH',
+   vesselImo:9712344, vesselName:'LNG Sagar Ratna', maxBudget:6800000000, committedSpend:6550000000,
+   officer:'Rohit Bhatia · Gujarat Desk', note:'Spot LNG prices have firmed up this month — worth a call before the next cargo is fixed.'},
+  {id:'CNT-2026-003', title:'Paradip Iron Ore Export Framework — Rotterdam', category:'LONG_TERM',
+   commodityName:'Iron Ore Pellets', commodityCode:'COMM-IRN-009', quantity:500000, unit:'Metric Tons',
+   startDate:'2026-01-01', endDate:'2027-12-31', originPortCode:'INPPP', destPortCode:'NLRTM',
+   vesselImo:9634112, vesselName:'MV Odisha Titan', maxBudget:5400000000, committedSpend:1850000000,
+   officer:'Meera Iyer · Vizag Desk', note:'Comfortably placed. Standard quarterly check-in is enough for now.'},
+  {id:'CNT-2026-004', title:'Fujairah Crude Oil Import — Vadinar Refinery', category:'SINGLE_SPOT',
+   commodityName:'Crude Oil (Brent)', commodityCode:'COMM-OIL-001', quantity:120000, unit:'Metric Tons',
+   startDate:'2026-09-01', endDate:'2026-09-25', originPortCode:'AEFJR', destPortCode:'INVAD',
+   vesselImo:9845123, vesselName:'MT Gulf Setu', maxBudget:4300000000, committedSpend:4250000000,
+   officer:'Arjun Mehta · Delhi Desk', note:'Very close to the ceiling — please get sign-off before confirming any additional freight on this one.'},
+  {id:'CNT-2026-005', title:'Kolkata Assam Tea Export — Felixstowe', category:'SHORT_TERM',
+   commodityName:'Assam Tea', commodityCode:'COMM-AGR-045', quantity:3200, unit:'Metric Tons',
+   startDate:'2026-07-15', endDate:'2026-10-05', originPortCode:'INCCU', destPortCode:'GBFXT',
+   vesselImo:9598211, vesselName:'MV Brahmaputra Grace', maxBudget:180000000, committedSpend:95000000,
+   officer:'Ishaan Roy · Kolkata Desk', note:'Second-flush teas are loading well ahead of schedule. Nothing pending from our side.'},
+  {id:'CNT-2026-006', title:'Newcastle Thermal Coal Import — Visakhapatnam', category:'LONG_TERM',
+   commodityName:'Thermal Coal', commodityCode:'COMM-COL-012', quantity:210000, unit:'Metric Tons',
+   startDate:'2025-11-01', endDate:'2027-10-31', originPortCode:'AUNTL', destPortCode:'INVTZ',
+   vesselImo:9567342, vesselName:'MV Andhra Voyager', maxBudget:3100000000, committedSpend:960000000,
+   officer:'Meera Iyer · Vizag Desk', note:'Running well within plan. Revisit closer to the monsoon shipping window.'},
+];
+
+const CATLABEL = {SINGLE_SPOT:'Single Spot', SHORT_TERM:'Short Term', LONG_TERM:'Long Term'};
+
+/* icons for the detail side-menu */
+const ICONS = {
+  overview: '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/></svg>',
+  budget:   '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M4 3h6M4 6h8M4 6c3 0 5 1.3 5 3s-2 3-5 3M4 9h6M6 6v6l6 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  vessel:   '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 10.5l1.5 3c.4.9 1.3 1.5 2.3 1.5h4.4c1 0 1.9-.6 2.3-1.5l1.5-3H2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M4.5 10.5V6h7v4.5M8 6V2.5M6 3h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  details:  '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M3 8h10M3 12h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+};
+const SECTIONS = [
+  {id:'overview', label:'Overview'},
+  {id:'budget', label:'Budget'},
+  {id:'vessel', label:'Vessel & map'},
+  {id:'details', label:'Full details'},
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const state = {
+  category:'ALL',
+  commodities: new Set(),
+  maxQty:600000,
+  search:'',
+  selectedId: CONTRACTS[0].id,
+  editingId: null,
+  detailSection:'overview',
+};
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function inr(n){ return '₹' + Math.round(n).toLocaleString('en-IN'); }
+function inrShort(n){
+  const abs = Math.abs(n);
+  if(abs >= 1e7) return '₹' + (n/1e7).toFixed(2) + ' Cr';
+  if(abs >= 1e5) return '₹' + (n/1e5).toFixed(2) + ' L';
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+const fmtQty = (n,u) => n.toLocaleString('en-IN') + ' ' + u;
+function initials(name){ return name.split(' ').filter(w=>/^[A-Za-z]/.test(w)).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
+function todayISO(){ return '2026-09-10'; }
+function mtUrl(imo){ return `https://www.marinetraffic.com/en/ais/details/ships/imo:${imo}`; }
+
+function contractProgress(c){
+  const start=new Date(c.startDate), end=new Date(c.endDate), now=new Date(todayISO());
+  if(now<=start) return 0;
+  if(now>=end) return 1;
+  return (now-start)/(end-start);
+}
+function budgetState(ratio){
+  if(ratio>=0.92) return 'critical';
+  if(ratio>=0.75) return 'warning';
+  return 'healthy';
+}
+function ctaCopy(c){
+  const ratio = c.committedSpend/c.maxBudget, st=budgetState(ratio), prog=contractProgress(c);
+  const remaining = c.maxBudget - c.committedSpend;
+  const first = c.officer.split(' ')[0];
+  if(st==='critical'){
+    return {state:'critical', head:'Time to step in',
+      body:`${first}, this one's at ${(ratio*100).toFixed(1)}% of budget with only ${inrShort(remaining)} of headroom left. Best to get approval before booking any more freight on ${c.vesselName}.`};
+  }
+  if(st==='warning'){
+    return {state:'warning', head:'Worth a look',
+      body:`${(ratio*100).toFixed(1)}% of the budget is committed and the contract is ${(prog*100).toFixed(0)}% through its term. A quick check against current rates before the next booking would help.`};
+  }
+  return {state:'healthy', head:'Nice and steady',
+    body:`Spend is tracking comfortably at ${(ratio*100).toFixed(1)}% of budget against ${(prog*100).toFixed(0)}% of the term elapsed. Nothing needs your attention right now.`};
+}
+
+/* =========================================================
+   RENDER: header
+   ========================================================= */
+function renderHeader(){
+  const totalBudget = CONTRACTS.reduce((s,c)=>s+c.maxBudget,0);
+  const totalCommitted = CONTRACTS.reduce((s,c)=>s+c.committedSpend,0);
+  document.getElementById('headstats').innerHTML = `
+    <span><b>${CONTRACTS.length}</b><span class="lbl">contracts</span></span>
+    <span><b>${inrShort(totalBudget)}</b><span class="lbl">total budget</span></span>
+    <span><b>${((totalCommitted/totalBudget)*100).toFixed(0)}%</b><span class="lbl">committed</span></span>
+  `;
+  document.getElementById('dbcount').textContent = CONTRACTS.length;
+  document.getElementById('btn-new').addEventListener('click', ()=> openContractModal(null));
+}
+
+/* =========================================================
+   RENDER: filters
+   ========================================================= */
+function renderFilters(){
+  const el = document.getElementById('filters');
+  el.innerHTML = `
+    <div class="filt-block">
+      <p class="filt-title">Search</p>
+      <input type="text" id="f-search" placeholder="Contract, vessel, port…" value="${state.search}">
+    </div>
+    <details class="filt-collapse">
+      <summary>Commodity filter</summary>
+      <div class="inner">
+        <div id="commodity-list"></div>
+        <div class="add-commodity-row">
+          <input type="text" id="f-add-commodity" placeholder="Add a commodity…">
+          <button class="btn ghost small" id="f-add-commodity-btn">Add</button>
+        </div>
+      </div>
+    </details>
+    <details class="filt-collapse">
+      <summary>Quantity cap</summary>
+      <div class="inner">
+        <input type="range" id="f-qty" min="0" max="600000" step="10000" value="${state.maxQty}">
+        <div class="range-labels"><span>0</span><span id="f-qty-val">${state.maxQty.toLocaleString('en-IN')} MT</span></div>
+      </div>
+    </details>
+    <button class="clear-btn" id="f-clear">Reset filters</button>
+  `;
+  renderCommodityList();
+
+  el.querySelector('#f-search').addEventListener('input',e=>{ state.search=e.target.value; renderList(); });
+  el.querySelector('#f-qty').addEventListener('input',e=>{
+    state.maxQty = Number(e.target.value);
+    el.querySelector('#f-qty-val').textContent = state.maxQty.toLocaleString('en-IN') + ' MT';
+    renderList();
+  });
+  el.querySelector('#f-clear').addEventListener('click',()=>{
+    state.commodities.clear(); state.maxQty=600000; state.search=''; state.category='ALL';
+    renderFilters(); renderListToolbar(); renderList();
+  });
+  el.querySelector('#f-add-commodity-btn').addEventListener('click', addCommodityFromInput);
+  el.querySelector('#f-add-commodity').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); addCommodityFromInput(); } });
+}
+
+function addCommodityFromInput(){
+  const input = document.getElementById('f-add-commodity');
+  const val = input.value.trim();
+  if(!val) return;
+  if(COMMODITIES.some(c=>c.toLowerCase()===val.toLowerCase())){ input.value=''; return; }
+  COMMODITIES.push(val);
+  input.value='';
+  renderCommodityList();
+}
+function deleteCommodity(name){
+  if(CONTRACTS.some(c=>c.commodityName===name)) return;
+  COMMODITIES = COMMODITIES.filter(c=>c!==name);
+  state.commodities.delete(name);
+  renderCommodityList();
+  renderList();
+}
+function renderCommodityList(){
+  const wrap = document.getElementById('commodity-list');
+  wrap.innerHTML = COMMODITIES.slice().sort().map(name=>{
+    const n = CONTRACTS.filter(c=>c.commodityName===name).length;
+    const checked = state.commodities.has(name) ? 'checked' : '';
+    const canDelete = n===0;
+    return `<div class="commodity-row">
+        <label><input type="checkbox" data-commodity="${name}" ${checked}> ${name} <span class="n">${n}</span></label>
+        <button class="del-x" data-del-commodity="${name}" ${canDelete?'':'disabled'} title="${canDelete? 'Remove commodity' : 'In use — reassign it first'}">✕</button>
+      </div>`;
+  }).join('');
+  wrap.querySelectorAll('[data-commodity]').forEach(cb=>{
+    cb.addEventListener('change', e=>{
+      const v=e.target.dataset.commodity;
+      if(e.target.checked) state.commodities.add(v); else state.commodities.delete(v);
+      renderList();
+    });
+  });
+  wrap.querySelectorAll('[data-del-commodity]').forEach(btn=>{
+    btn.addEventListener('click', ()=> deleteCommodity(btn.dataset.delCommodity));
+  });
+}
+
+/* =========================================================
+   RENDER: list toolbar (category dropdown + search count)
+   ========================================================= */
+function renderListToolbar(){
+  const wrap = document.querySelector('.list-toolbar');
+  if(!wrap) return;
+  wrap.querySelector('#cat-select').value = state.category;
+}
+
+/* =========================================================
+   RENDER: contract list
+   ========================================================= */
+function filteredContracts(){
+  return CONTRACTS.filter(c=>{
+    if(state.category!=='ALL' && c.category!==state.category) return false;
+    if(state.commodities.size>0 && !state.commodities.has(c.commodityName)) return false;
+    if(c.quantity > state.maxQty) return false;
+    if(state.search){
+      const q=state.search.toLowerCase();
+      const origin = PORTS[c.originPortCode]?.name || '';
+      const dest = PORTS[c.destPortCode]?.name || '';
+      const hay=`${c.title} ${c.id} ${c.vesselName} ${origin} ${dest} ${c.commodityName}`.toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderList(){
+  const list = filteredContracts();
+  const el = document.getElementById('listpane');
+  if(!list.find(c=>c.id===state.selectedId) && list.length>0){ state.selectedId = list[0].id; }
+  if(list.length===0) state.selectedId = null;
+
+  el.innerHTML = `
+    <div class="list-toolbar">
+      <div class="list-toolbar-row">
+        <h2>All contracts</h2>
+        <select class="cat-select" id="cat-select">
+          <option value="ALL">All categories</option>
+          <option value="SINGLE_SPOT">Single Spot</option>
+          <option value="SHORT_TERM">Short Term</option>
+          <option value="LONG_TERM">Long Term</option>
+        </select>
+      </div>
+      <div class="list-toolbar-row"><span class="list-count">${list.length} matching contract${list.length===1?'':'s'}</span></div>
+    </div>
+    <div id="card-list">
+    ${list.length===0
+      ? `<div class="empty">No contracts match the current filters — try widening the search or clearing a filter.</div>`
+      : list.slice().sort((a,b)=>new Date(a.startDate)-new Date(b.startDate)).map(c=>{
+          const ratio = c.committedSpend/c.maxBudget;
+          const st = budgetState(ratio);
+          const fillColor = st==='critical'?'var(--red)':st==='warning'?'var(--brass)':'var(--teal)';
+          return `
+          <div class="card ${c.id===state.selectedId?'active':''}" data-id="${c.id}">
+            <div class="card-top">
+              <span class="card-id">${c.id}</span>
+              <span class="tag ${c.category}">${CATLABEL[c.category]}</span>
+            </div>
+            <div class="card-title">${c.title}</div>
+            <div class="card-meta">
+              <span>${c.commodityName}</span>
+              <span class="route">${c.originPortCode} → ${c.destPortCode}</span>
+            </div>
+            <div class="card-officer">
+              <span class="avatar">${initials(c.officer)}</span>
+              <span>${c.officer.split(' · ')[0]}</span>
+            </div>
+            <div class="card-bud">
+              <div class="bud-bar"><div class="bud-fill" style="width:${Math.min(ratio*100,100)}%;background:${fillColor}"></div></div>
+              <div class="bud-row"><span>${inrShort(c.committedSpend)} committed</span><span>${(ratio*100).toFixed(0)}% of ${inrShort(c.maxBudget)}</span></div>
+            </div>
+          </div>`;
+        }).join('')
+    }
+    </div>`;
+
+  document.getElementById('cat-select').value = state.category;
+  document.getElementById('cat-select').addEventListener('change', e=>{ state.category=e.target.value; renderList(); });
+  el.querySelectorAll('.card').forEach(card=>{
+    card.addEventListener('click',()=>{ state.selectedId=card.dataset.id; state.detailSection='overview'; renderList(); renderDetail(); });
+  });
+}
+
+/* =========================================================
+   RENDER: nautical chart (SVG lane diagram)
+   ========================================================= */
+function project(lon,lat,w,h){ return [((lon+180)/360)*w, ((90-lat)/180)*h]; }
+function routeSVG(c){
+  const w=900,h=150;
+  const origin = PORTS[c.originPortCode], dest = PORTS[c.destPortCode];
+  const [x1]=project(origin.lon,origin.lat,w,h);
+  const [x2]=project(dest.lon,dest.lat,w,h);
+  const pad=50, px1=pad, px2=w-pad, midY=h/2;
+  const prog = contractProgress(c);
+  const flip = x1>x2;
+  const startX = flip ? px2 : px1, endX = flip ? px1 : px2;
+  const vX = startX + (endX-startX)*prog;
+  const curveY = midY - 26;
+  return `
+  <svg class="route-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <path d="M ${px1} ${midY} Q ${w/2} ${curveY} ${px2} ${midY}" fill="none" stroke="var(--rule)" stroke-width="1.5" stroke-dasharray="1 8" stroke-linecap="round"/>
+    <path d="M ${startX} ${midY} Q ${w/2} ${curveY} ${vX} ${midY < curveY ? curveY : midY}" fill="none" stroke="none"/>
+    <circle cx="${px1}" cy="${midY}" r="5" fill="var(--ink)"/>
+    <circle cx="${px2}" cy="${midY}" r="5" fill="var(--ink)"/>
+    <text x="${px1}" y="${midY+22}" font-family="IBM Plex Mono" font-size="11" fill="var(--ink-dim)" text-anchor="start">${c.originPortCode}</text>
+    <text x="${px2}" y="${midY+22}" font-family="IBM Plex Mono" font-size="11" fill="var(--ink-dim)" text-anchor="end">${c.destPortCode}</text>
+    <g transform="translate(${vX},${midY - Math.sin((prog)*Math.PI)*26})">
+      <circle r="10" fill="var(--card)" stroke="var(--teal)" stroke-width="2"/>
+      <path d="M -3,-2.5 L 4,0 L -3,2.5 Z" fill="var(--teal)"/>
+    </g>
+  </svg>`;
+}
+
+/* =========================================================
+   RENDER: detail pane
+   ========================================================= */
+function renderDetail(){
+  const c = CONTRACTS.find(x=>x.id===state.selectedId);
+  const el = document.getElementById('detail');
+  if(!c){
+    el.innerHTML = `<div class="detail-empty"><div class="glyph">॥</div>Select a contract on the left, or start a new one.</div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="detail-nav">
+      <div class="dn-head">
+        <div class="dn-id">${c.id}</div>
+      </div>
+      ${SECTIONS.map(s=>`<button data-sec="${s.id}" class="${state.detailSection===s.id?'active':''}">${ICONS[s.id]}${s.label}</button>`).join('')}
+    </div>
+    <div class="detail-content" id="detail-content"></div>
+  `;
+  el.querySelectorAll('.detail-nav button').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.detailSection=b.dataset.sec; renderDetail(); });
+  });
+  renderDetailContent(c);
+}
+
+function renderDetailContent(c){
+  const cta = ctaCopy(c);
+  const prog = contractProgress(c);
+  const ratio = c.committedSpend/c.maxBudget;
+  const gaugeColor = cta.state==='critical'?'var(--red)':cta.state==='warning'?'var(--brass)':'var(--teal)';
+  const remaining = c.maxBudget - c.committedSpend;
+  const origin = PORTS[c.originPortCode], dest = PORTS[c.destPortCode];
+  const durationDays = daysBetween(c.startDate,c.endDate);
+  const content = document.getElementById('detail-content');
+
+  const head = `
+    <div class="d-head">
+      <div class="d-id">IMO ${c.vesselImo}</div>
+      <div class="d-title">${c.title}</div>
+      <div class="d-badges">
+        <span class="tag ${c.category}">${CATLABEL[c.category]}</span>
+        <span class="d-officer"><span class="avatar">${initials(c.officer)}</span>${c.officer}</span>
+      </div>
+      <div class="d-actions">
+        <button class="btn ghost small" id="btn-edit">Edit contract</button>
+        <button class="btn danger small" id="btn-delete">Delete</button>
+      </div>
+    </div>`;
+
+  let body = '';
+  if(state.detailSection==='overview'){
+    body = `
+      <div class="tile-row">
+        <div class="tile"><div class="t-lbl">Budget committed</div><div class="t-val">${(ratio*100).toFixed(0)}%</div><div class="t-sub">${inrShort(c.committedSpend)} of ${inrShort(c.maxBudget)}</div></div>
+        <div class="tile"><div class="t-lbl">Transit elapsed</div><div class="t-val">${(prog*100).toFixed(0)}%</div><div class="t-sub">${c.startDate} → ${c.endDate}</div></div>
+        <div class="tile"><div class="t-lbl">Quantity</div><div class="t-val">${(c.quantity/1000).toFixed(0)}k</div><div class="t-sub">${c.unit} of ${c.commodityName}</div></div>
+      </div>
+      <div class="panel">
+        <h3>Route at a glance</h3>
+        <div class="route-ports">
+          <div class="route-port"><div class="code">${c.originPortCode}</div><div class="name">${origin.name}</div></div>
+          <div class="route-port dest"><div class="code">${c.destPortCode}</div><div class="name">${dest.name}</div></div>
+        </div>
+      </div>
+      ${c.note ? `<div class="panel"><h3>Desk note</h3><div class="note-box" style="padding-top:0;border-top:none;margin-top:0;">"${c.note}"</div></div>` : ''}
+    `;
+  } else if(state.detailSection==='budget'){
+    body = `
+      <div class="panel">
+        <h3>Max procurement budget</h3>
+        <div class="gauge-wrap">
+          <svg width="92" height="92" viewBox="0 0 88 88">
+            <circle cx="44" cy="44" r="38" fill="none" stroke="var(--rule-lite)" stroke-width="8"/>
+            <circle cx="44" cy="44" r="38" fill="none" stroke="${gaugeColor}" stroke-width="8"
+              stroke-dasharray="${2*Math.PI*38}" stroke-dashoffset="${2*Math.PI*38*(1-Math.min(ratio,1))}"
+              stroke-linecap="round" transform="rotate(-90 44 44)"/>
+            <text x="44" y="49" text-anchor="middle" font-family="IBM Plex Mono" font-size="15" fill="var(--ink)" font-weight="600">${(ratio*100).toFixed(0)}%</text>
+          </svg>
+          <div class="gauge-figs">
+            <div class="big">${inrShort(c.committedSpend)}</div>
+            <div class="lbl">committed of ${inrShort(c.maxBudget)} max</div>
+            <div class="of">${inrShort(remaining)} remaining</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Next step</h3>
+        <div class="cta ${cta.state}">
+          <span class="dot"></span>
+          <div><div class="head">${cta.head}</div><div class="body">${cta.body}</div></div>
+        </div>
+      </div>
+    `;
+  } else if(state.detailSection==='vessel'){
+    body = `
+      <div class="panel">
+        <h3>${c.vesselName} · IMO ${c.vesselImo}</h3>
+        <div class="route-ports">
+          <div class="route-port"><div class="code">${c.originPortCode}</div><div class="name">${origin.name}</div></div>
+          <div class="route-port dest"><div class="code">${c.destPortCode}</div><div class="name">${dest.name}</div></div>
+        </div>
+        <div class="chart-frame">${routeSVG(c)}</div>
+        <div class="route-info">
+          <span><b>${(prog*100).toFixed(0)}%</b> of the transit window elapsed</span>
+          <span>${durationDays} days total</span>
+        </div>
+        <div class="mt-row">
+          <span class="mt-caption">Opens this vessel's live position on MarineTraffic, in a new tab.</span>
+          <a class="btn teal small" href="${mtUrl(c.vesselImo)}" target="_blank" rel="noopener">Track on MarineTraffic ↗</a>
+        </div>
+      </div>
+    `;
+  } else {
+    body = `
+      <div class="panel">
+        <h3>Contract detail</h3>
+        <table class="meta-table">
+          <tr><td>Commodity</td><td>${c.commodityName} (${c.commodityCode})</td></tr>
+          <tr><td>Quantity</td><td>${fmtQty(c.quantity,c.unit)}</td></tr>
+          <tr><td>Origin port</td><td>${origin.name} (${c.originPortCode})</td></tr>
+          <tr><td>Destination port</td><td>${dest.name} (${c.destPortCode})</td></tr>
+          <tr><td>Contract term</td><td>${c.startDate} — ${c.endDate}</td></tr>
+          <tr><td>Duration</td><td>${durationDays} days</td></tr>
+          <tr><td>Vessel</td><td>${c.vesselName}</td></tr>
+          <tr><td>IMO number</td><td>${c.vesselImo}</td></tr>
+          <tr><td>Desk officer</td><td>${c.officer}</td></tr>
+        </table>
+        ${c.note ? `<div class="note-box">"${c.note}"</div>` : ''}
+      </div>
+    `;
+  }
+
+  content.innerHTML = head + body;
+  document.getElementById('btn-edit').addEventListener('click', ()=> openContractModal(c.id));
+  document.getElementById('btn-delete').addEventListener('click', ()=> deleteContract(c.id));
+}
+
+/* =========================================================
+   ADD / EDIT / DELETE CONTRACT
+   ========================================================= */
+function nextContractId(){
+  const nums = CONTRACTS.map(c=>parseInt(c.id.split('-').pop(),10)).filter(n=>!isNaN(n));
+  const next = (nums.length ? Math.max(...nums) : 0) + 1;
+  return `CNT-2026-${String(next).padStart(3,'0')}`;
+}
+function deleteContract(id){
+  const c = CONTRACTS.find(x=>x.id===id);
+  if(!c) return;
+  if(!confirm(`Remove "${c.title}" from the ledger? This can't be undone.`)) return;
+  CONTRACTS = CONTRACTS.filter(x=>x.id!==id);
+  if(state.selectedId===id) state.selectedId = CONTRACTS[0] ? CONTRACTS[0].id : null;
+  renderAll();
+}
+function openContractModal(id){
+  state.editingId = id;
+  const editing = id ? CONTRACTS.find(c=>c.id===id) : null;
+  const portOptions = Object.entries(PORTS).map(([code,p])=>`<option value="${code}">${p.name} (${code})</option>`).join('');
+  const commodityOptions = COMMODITIES.slice().sort().map(name=>`<option value="${name}">${name}</option>`).join('');
+  const officerOptions = OFFICERS.map(o=>`<option value="${o}">${o}</option>`).join('');
+  const v = editing || {
+    title:'', category:'SINGLE_SPOT', commodityName:COMMODITIES[0]||'', commodityCode:'',
+    quantity:'', unit:'Metric Tons', startDate:'2026-09-10', endDate:'2026-10-10',
+    originPortCode:'INNSA', destPortCode:'AEJEA', vesselImo:'', vesselName:'',
+    maxBudget:'', committedSpend:'', officer:OFFICERS[0], note:'',
+  };
+  const root = document.getElementById('modal-root');
+  root.innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <h2>${editing ? 'Edit contract' : 'New contract'}</h2>
+        <div class="modal-sub">${editing ? editing.id : 'Will be filed as ' + nextContractId()}</div>
+        <div class="form-grid">
+          <div class="field full"><label>Contract title</label>
+            <input type="text" id="m-title" value="${v.title.replace(/"/g,'&quot;')}" placeholder="e.g. Mundra Cotton Yarn Export — Colombo"></div>
+          <div class="field"><label>Category</label>
+            <select id="m-category">
+              <option value="SINGLE_SPOT" ${v.category==='SINGLE_SPOT'?'selected':''}>Single Spot</option>
+              <option value="SHORT_TERM" ${v.category==='SHORT_TERM'?'selected':''}>Short Term</option>
+              <option value="LONG_TERM" ${v.category==='LONG_TERM'?'selected':''}>Long Term</option>
+            </select></div>
+          <div class="field"><label>Commodity</label><select id="m-commodity">${commodityOptions}</select></div>
+          <div class="field"><label>Commodity code</label><input type="text" id="m-commoditycode" value="${v.commodityCode}" placeholder="COMM-XXX-000"></div>
+          <div class="field"><label>Quantity (MT)</label><input type="number" id="m-quantity" value="${v.quantity}" min="0"></div>
+          <div class="field"><label>Start date</label><input type="date" id="m-start" value="${v.startDate}"></div>
+          <div class="field"><label>End date</label><input type="date" id="m-end" value="${v.endDate}"></div>
+          <div class="field"><label>Origin port</label><select id="m-origin">${portOptions}</select></div>
+          <div class="field"><label>Destination port</label><select id="m-dest">${portOptions}</select></div>
+          <div class="field"><label>Vessel name</label><input type="text" id="m-vesselname" value="${v.vesselName}" placeholder="e.g. MV Ganga Vaibhav"></div>
+          <div class="field"><label>Vessel IMO number</label><input type="number" id="m-vesselimo" value="${v.vesselImo}"></div>
+          <div class="field"><label>Max budget (₹)</label><input type="number" id="m-maxbudget" value="${v.maxBudget}" min="0"><div class="field-hint">e.g. 95,00,00,000 for ₹95 crore</div></div>
+          <div class="field"><label>Committed spend (₹)</label><input type="number" id="m-committed" value="${v.committedSpend}" min="0"></div>
+          <div class="field full"><label>Desk officer</label><select id="m-officer">${officerOptions}</select></div>
+          <div class="field full"><label>Note (optional)</label><input type="text" id="m-note" value="${(v.note||'').replace(/"/g,'&quot;')}" placeholder="Anything the next person picking this up should know"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="m-cancel">Cancel</button>
+          <div class="right"><button class="btn" id="m-save">${editing ? 'Save changes' : 'Add contract'}</button></div>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('m-commodity').value = v.commodityName;
+  document.getElementById('m-origin').value = v.originPortCode;
+  document.getElementById('m-dest').value = v.destPortCode;
+  document.getElementById('m-officer').value = v.officer;
+  document.getElementById('m-cancel').addEventListener('click', closeModal);
+  document.getElementById('modal-overlay').addEventListener('click', e=>{ if(e.target.id==='modal-overlay') closeModal(); });
+  document.getElementById('m-save').addEventListener('click', saveContractFromModal);
+}
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; state.editingId=null; }
+function saveContractFromModal(){
+  const title = document.getElementById('m-title').value.trim();
+  if(!title){ alert('Give this contract a title before saving.'); return; }
+  const payload = {
+    title,
+    category: document.getElementById('m-category').value,
+    commodityName: document.getElementById('m-commodity').value,
+    commodityCode: document.getElementById('m-commoditycode').value.trim() || 'COMM-GEN-000',
+    quantity: Number(document.getElementById('m-quantity').value) || 0,
+    unit: 'Metric Tons',
+    startDate: document.getElementById('m-start').value,
+    endDate: document.getElementById('m-end').value,
+    originPortCode: document.getElementById('m-origin').value,
+    destPortCode: document.getElementById('m-dest').value,
+    vesselName: document.getElementById('m-vesselname').value.trim() || 'Unnamed vessel',
+    vesselImo: Number(document.getElementById('m-vesselimo').value) || 0,
+    maxBudget: Number(document.getElementById('m-maxbudget').value) || 0,
+    committedSpend: Number(document.getElementById('m-committed').value) || 0,
+    officer: document.getElementById('m-officer').value,
+    note: document.getElementById('m-note').value.trim(),
+  };
+  if(state.editingId){
+    const idx = CONTRACTS.findIndex(c=>c.id===state.editingId);
+    CONTRACTS[idx] = {...CONTRACTS[idx], ...payload};
+    state.selectedId = state.editingId;
+  } else {
+    const id = nextContractId();
+    CONTRACTS.push({id, ...payload});
+    state.selectedId = id;
+  }
+  closeModal();
+  renderAll();
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+function renderAll(){
+  renderHeader();
+  renderFilters();
+  renderList();
+  renderDetail();
+}
+renderAll();
+</script>
+</body>
+</html>

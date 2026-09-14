@@ -1,0 +1,4 @@
+Demand_Lot_ID,Plant_Name,Destination_Port,Commodity,Tonnage_MT,Delivery_Window_Start,Delivery_Window_End,Coke_Spec_Ash,Coke_Spec_CSN
+LOT-SAIL-01,Bhilai Steel Plant,Paradip Port,HCC Coking Coal,65000,2026-10-05,2026-10-15,9.5%,8.5
+LOT-SAIL-02,Rourkela Steel Plant,Dhamra Port,HCC Coking Coal,55000,2026-10-08,2026-10-18,9.2%,8.0
+LOT-SAIL-03,Bokaro Steel Plant,Haldia Dock Complex,SSCC Coal,40000,2026-10-20,2026-10-30,10.0%,7.5
