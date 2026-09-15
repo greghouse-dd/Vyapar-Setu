@@ -101,6 +101,9 @@ ORIGIN_ROUTES: dict[str, dict] = {
     },
 }
 
+ORIGINS = ORIGIN_ROUTES
+
+
 # ── Charter timing — rate multiplier relative to current spot ────────────────
 TIMING_OPTIONS: dict[str, dict] = {
     "fix_now": {

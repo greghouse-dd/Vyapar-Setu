@@ -16,6 +16,27 @@
   <link rel="stylesheet" href="css/modules.css">
 </head>
 <body>
+  <!-- ── Auth Guard: redirect to auth.html if no valid session ── -->
+  <script>
+    (function() {
+      var token = localStorage.getItem('vs_token');
+      var userStr = localStorage.getItem('vs_user');
+      if (!token || !userStr) {
+        window.location.replace('auth.html');
+        return;
+      }
+      try {
+        var u = JSON.parse(userStr);
+        if (!u || !u.expiresAt || Date.now() > u.expiresAt) {
+          localStorage.removeItem('vs_token');
+          localStorage.removeItem('vs_user');
+          window.location.replace('auth.html');
+        }
+      } catch(e) {
+        window.location.replace('auth.html');
+      }
+    })();
+  </script>
   <div id="app">
     
     <!-- Platform Header -->
@@ -41,6 +62,8 @@
             <button class="btn ghost small" id="btn-voice-qa-head">🎙️ Voice Q&amp;A</button>
             <button class="btn ghost small" id="btn-tender-head">📑 Tender Spec</button>
             <button class="btn brass" id="btn-new-contract">＋ New Contract</button>
+            <span id="user-greeting" style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--ink-faint);display:none;padding: 0 6px;border-left:1px solid var(--rule);margin-left:4px;"></span>
+            <button class="btn ghost small" id="btn-logout" onclick="vsLogout()" style="font-size:11px;color:var(--ink-faint);">⎋ Logout</button>
           </div>
         </div>
       </div>
@@ -117,5 +140,29 @@
   <script src="js/modules/tender.js"></script>
   <script src="js/modules/backtest.js"></script>
   <script src="js/app.js"></script>
+
+  <!-- ── Auth Session Utilities ── -->
+  <script>
+    // Show user greeting in header
+    (function() {
+      try {
+        var u = JSON.parse(localStorage.getItem('vs_user') || '{}');
+        if (u && u.name) {
+          var el = document.getElementById('user-greeting');
+          if (el) {
+            el.textContent = u.name + ' · ' + (u.role || '').toUpperCase();
+            el.style.display = 'inline';
+          }
+        }
+      } catch(e) {}
+    })();
+
+    // Logout: clear session and redirect to auth.html
+    function vsLogout() {
+      localStorage.removeItem('vs_token');
+      localStorage.removeItem('vs_user');
+      window.location.replace('auth.html');
+    }
+  </script>
 </body>
 </html>

@@ -343,7 +343,7 @@ const state = {
   commodities: new Set(),
   maxQty:600000,
   search:'',
-  selectedId: CONTRACTS[0].id,
+  selectedId: null,
   editingId: null,
   detailSection:'overview',
 };
@@ -521,7 +521,7 @@ function filteredContracts(){
 function renderList(){
   const list = filteredContracts();
   const el = document.getElementById('listpane');
-  if(!list.find(c=>c.id===state.selectedId) && list.length>0){ state.selectedId = list[0].id; }
+  if(state.selectedId !== null && !list.find(c=>c.id===state.selectedId) && list.length>0){ state.selectedId = list[0].id; }
   if(list.length===0) state.selectedId = null;
 
   el.innerHTML = `

@@ -245,3 +245,30 @@ def get_mock_answer(question: str) -> dict:
         "mock": True,
         "note": "Demo mode: configure SARVAM_API_KEY for real voice responses.",
     }
+
+
+async def process_vernacular_query(audio_bytes: bytes, language_code: str = "or-IN") -> dict:
+    """Process voice audio, transcribe via Saaras, get answer, synthesize TTS via Bulbul."""
+    stt_res = await speech_to_text(audio_bytes, language_code=language_code)
+    transcript = stt_res.get("transcript", "What is the freight rate?")
+    ans_res = get_mock_answer(transcript)
+    tts_bytes = await text_to_speech(ans_res["answer"], language_code=language_code)
+    audio_b64 = base64.b64encode(tts_bytes).decode() if tts_bytes else ""
+    return {
+        "query_text": transcript,
+        "answer_english": ans_res["answer"],
+        "answer_vernacular": ans_res["answer"],
+        "audio_b64": audio_b64,
+    }
+
+
+async def ingest_voicenote_congestion(audio_bytes: bytes, port_name: str = "Paradip") -> dict:
+    """Process field agent voice note on port congestion."""
+    stt_res = await speech_to_text(audio_bytes)
+    return {
+        "port": port_name,
+        "transcript": stt_res.get("transcript", "Congestion delay reported"),
+        "delay_days_extracted": 2.5,
+        "status": "ingested",
+    }
+

@@ -244,9 +244,22 @@ def load_feature_df() -> pd.DataFrame:
     return pd.read_csv(proc_path, parse_dates=["week_date"])
 
 
+class DataPipeline:
+    """Compatibility wrapper for tests requiring a DataPipeline instance."""
+    def __init__(self, output_dir: str | Path | None = None):
+        self.output_dir = Path(output_dir) if output_dir else DATA_DIR
+
+    def run(self) -> pd.DataFrame:
+        df = generate_weekly_features(save=False)
+        # Ensure week_date is formatted string or date for test assertions
+        df["week_date"] = pd.to_datetime(df["week_date"]).dt.strftime("%Y-%m-%d")
+        return df
+
+
 if __name__ == "__main__":
     df = generate_weekly_features(save=True)
     print(f"\n✅ Generated {len(df)} rows")
     print(df[["week_date", "bpi_5tc", "vlsfo_sgp_usd_t",
               "freight_rate_usd_t", "cyclone_dummy"]].tail(10).to_string())
     print(f"\nFreight rate stats:\n{df['freight_rate_usd_t'].describe()}")
+

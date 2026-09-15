@@ -10,7 +10,7 @@ window.LedgerModule = (function() {
     commodities: new Set(),
     maxQty: 600000,
     search: '',
-    selectedId: data.CONTRACTS[0] ? data.CONTRACTS[0].id : null,
+    selectedId: null,
     editingId: null,
     detailSection: 'overview'
   };
@@ -184,7 +184,7 @@ window.LedgerModule = (function() {
   function renderList(container) {
     if (!container) return;
     const list = filteredContracts();
-    if (!list.find(c => c.id === state.selectedId) && list.length > 0) {
+    if (state.selectedId !== null && !list.find(c => c.id === state.selectedId) && list.length > 0) {
       state.selectedId = list[0].id;
     }
     if (list.length === 0) state.selectedId = null;
@@ -252,11 +252,192 @@ window.LedgerModule = (function() {
     });
   }
 
+  function globalWorldMapSVG() {
+    const w = 900, h = 420;
+    
+    // Grid lines (latitudes / longitudes)
+    const latLines = [60, 30, 0, -30, -60].map(lat => {
+      const y = Math.round(((90 - lat) / 180) * h);
+      return `<line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="rgba(185,129,46,0.12)" stroke-dasharray="3 4" stroke-width="1"/>
+              <text x="12" y="${y - 4}" font-family="IBM Plex Mono" font-size="9" fill="rgba(42,32,22,0.4)">${lat > 0 ? lat + '°N' : lat < 0 ? Math.abs(lat) + '°S' : 'Equator (0°)'}</text>`;
+    }).join('');
+
+    const lonLines = [-120, -60, 0, 60, 120].map(lon => {
+      const x = Math.round(((lon + 180) / 360) * w);
+      return `<line x1="${x}" y1="0" x2="${x}" y2="${h}" stroke="rgba(185,129,46,0.12)" stroke-dasharray="3 4" stroke-width="1"/>
+              <text x="${x + 4}" y="${h - 10}" font-family="IBM Plex Mono" font-size="9" fill="rgba(42,32,22,0.4)">${lon > 0 ? lon + '°E' : lon < 0 ? Math.abs(lon) + '°W' : '0°'}</text>`;
+    }).join('');
+
+    // Coastlines & Landmass Polygons (equirectangular projection)
+    const africaPath = "M 407 137 L 477 132 L 530 147 L 535 157 L 557 195 L 577 197 L 572 222 L 550 250 L 537 287 L 515 307 L 495 310 L 480 267 L 472 215 L 412 195 Z";
+    const eurasiaPath = "M 425 135 L 450 117 L 487 80 L 525 50 L 625 45 L 800 50 L 875 75 L 800 137 L 750 150 L 712 200 L 700 217 L 695 205 L 675 170 L 650 192 L 632 187 L 620 165 L 595 162 L 557 195 L 532 157 L 512 125 L 475 115 Z";
+    const indiaPath = "M 620 165 L 635 185 L 642 200 L 650 205 L 660 195 L 668 180 L 675 170 L 678 165 L 660 150 L 630 152 Z";
+    const australiaPath = "M 732 280 L 760 262 L 790 255 L 805 252 L 825 282 L 832 295 L 825 317 L 795 312 L 737 310 Z";
+    const northAmericaPath = "M 30 62 L 100 75 L 137 105 L 150 140 L 187 175 L 225 187 L 250 205 L 262 137 L 287 115 L 300 100 L 250 62 L 150 50 Z";
+    const southAmericaPath = "M 250 205 L 262 250 L 275 270 L 270 337 L 287 362 L 325 300 L 362 237 L 325 200 L 262 200 Z";
+
+    // Global Trade Routes (Arcs connecting suppliers to India)
+    const routes = [
+      { id: 'au-in', path: 'M 829 307 Q 750 220 666 174', color: 'var(--brass)' },
+      { id: 'mz-in', path: 'M 531 290 Q 600 250 666 174', color: 'var(--teal)' },
+      { id: 'us-in', path: 'M 258 127 Q 380 320 666 174', color: '#7c3aed' },
+      { id: 'id-in', path: 'M 744 226 Q 700 200 666 174', color: '#2563eb' },
+      { id: 'ru-in', path: 'M 783 118 Q 740 140 666 174', color: '#d97706' }
+    ];
+
+    const routeSVGs = routes.map(r => `
+      <path d="${r.path}" fill="none" stroke="${r.color}" stroke-width="2.2" stroke-dasharray="6 6" opacity="0.85">
+        <animate attributeName="stroke-dashoffset" from="24" to="0" dur="2s" repeatCount="indefinite" />
+      </path>
+    `).join('');
+
+    // Ports Pins
+    const ports = [
+      { name: 'Paradip (INPPP)', x: 666, y: 174, hub: true },
+      { name: 'Dhamra (INDHM)', x: 667, y: 168, hub: true },
+      { name: 'Vizag (INVTZ)', x: 658, y: 181, hub: true },
+      { name: 'Newcastle (AUNTL)', x: 829, y: 307, hub: false },
+      { name: 'Hay Point (AUHPT)', x: 823, y: 278, hub: false },
+      { name: 'Maputo (MZMAP)', x: 531, y: 290, hub: false },
+      { name: 'Baltimore (USBAL)', x: 258, y: 127, hub: false },
+      { name: 'Tanjung Bara (IDTAB)', x: 744, y: 226, hub: false },
+      { name: 'Vostochny (RUVOST)', x: 783, y: 118, hub: false }
+    ];
+
+    const portMarkers = ports.map(p => {
+      if (p.hub) {
+        return `
+          <g transform="translate(${p.x},${p.y})">
+            <circle r="10" fill="rgba(30,110,99,0.25)">
+              <animate attributeName="r" values="6;14;6" dur="3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.7;0.1;0.7" dur="3s" repeatCount="indefinite"/>
+            </circle>
+            <circle r="4.5" fill="var(--teal)" stroke="var(--paper)" stroke-width="1.5"/>
+            <text x="9" y="3.5" font-family="IBM Plex Mono" font-size="10" font-weight="600" fill="var(--teal)">${p.name}</text>
+          </g>`;
+      } else {
+        return `
+          <g transform="translate(${p.x},${p.y})">
+            <circle r="4" fill="var(--brass)" stroke="var(--paper)" stroke-width="1.2"/>
+            <text x="7" y="-3" font-family="IBM Plex Mono" font-size="9.5" font-weight="500" fill="var(--ink-dim)">${p.name}</text>
+          </g>`;
+      }
+    }).join('');
+
+    return `
+      <svg class="global-map-svg" viewBox="0 0 ${w} ${h}" style="width:100%;height:350px;display:block;background:var(--paper);border-radius:4px;border:1px solid var(--rule);">
+        <!-- Map Background & Grid -->
+        <rect width="${w}" height="${h}" fill="rgba(30,110,99,0.03)" />
+        ${latLines}
+        ${lonLines}
+
+        <!-- Landmass Polygons -->
+        <path d="${africaPath}" fill="rgba(214, 199, 167, 0.45)" stroke="rgba(185, 129, 46, 0.4)" stroke-width="1" />
+        <path d="${eurasiaPath}" fill="rgba(214, 199, 167, 0.45)" stroke="rgba(185, 129, 46, 0.4)" stroke-width="1" />
+        <path d="${indiaPath}" fill="rgba(30, 110, 99, 0.2)" stroke="var(--teal)" stroke-width="1.5" />
+        <path d="${australiaPath}" fill="rgba(214, 199, 167, 0.45)" stroke="rgba(185, 129, 46, 0.4)" stroke-width="1" />
+        <path d="${northAmericaPath}" fill="rgba(214, 199, 167, 0.45)" stroke="rgba(185, 129, 46, 0.4)" stroke-width="1" />
+        <path d="${southAmericaPath}" fill="rgba(214, 199, 167, 0.45)" stroke="rgba(185, 129, 46, 0.4)" stroke-width="1" />
+
+        <!-- Compass Decoration -->
+        <g transform="translate(60, 360)">
+          <circle r="20" fill="none" stroke="rgba(185,129,46,0.3)" stroke-width="1"/>
+          <line x1="0" y1="-24" x2="0" y2="24" stroke="rgba(185,129,46,0.5)" stroke-width="1.2"/>
+          <line x1="-24" y1="0" x2="24" y2="0" stroke="rgba(185,129,46,0.5)" stroke-width="1.2"/>
+          <text x="-3.5" y="-26" font-family="Fraunces" font-size="10" font-weight="700" fill="var(--brass)">N</text>
+        </g>
+
+        <!-- Global Maritime Shipping Routes -->
+        ${routeSVGs}
+
+        <!-- Port Pins -->
+        ${portMarkers}
+      </svg>
+    `;
+  }
+
+  function renderGlobalMap() {
+    return `
+      <div class="detail-nav">
+        <div class="dn-head">
+          <div class="dn-id" style="background:var(--teal);color:#fff;padding:2px 8px;border-radius:3px;font-size:11px;">GLOBAL</div>
+        </div>
+        <button class="active" style="cursor:default;">🌐 Global Trade Network Map</button>
+      </div>
+
+      <div class="detail-content" style="padding:20px;">
+        <div class="d-head" style="margin-bottom:16px;">
+          <div>
+            <div class="d-title" style="font-size:18px;font-weight:700;">Global Maritime Trade Corridors</div>
+            <div style="font-size:12px;color:var(--ink-faint);margin-top:2px;">Monitoring 7 East Coast India Ports &amp; Global Raw Material Supply Basins</div>
+          </div>
+          <div class="d-badges">
+            <span class="tag LONG_TERM">7 East Coast Ports</span>
+            <span class="tag SINGLE_SPOT">Global AIS Tracked</span>
+          </div>
+        </div>
+
+        <div class="tile-row" style="margin-bottom:16px;">
+          <div class="tile accent-teal"><div class="t-lbl">East Coast Hubs</div><div class="t-val">7 Ports</div><div class="t-sub">Paradip · Dhamra · Vizag</div></div>
+          <div class="tile accent-brass"><div class="t-lbl">Supply Basins</div><div class="t-val">5 Origins</div><div class="t-sub">Australia · Mozambique · USA</div></div>
+          <div class="tile accent-purple"><div class="t-lbl">Monitored Cargo</div><div class="t-val">4.8M MT</div><div class="t-sub">Coking Coal · LNG · Pellets</div></div>
+        </div>
+
+        <div class="panel" style="padding:14px;margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <h3 style="margin:0;">World Freight Flow &amp; Maritime Lanes</h3>
+            <span style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--teal);">● REAL-TIME GLOBAL AIS OVERLAY</span>
+          </div>
+          ${globalWorldMapSVG()}
+          
+          <div style="display:flex;gap:18px;margin-top:12px;font-size:11.5px;color:var(--ink-dim);flex-wrap:wrap;align-items:center;">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--teal);margin-right:4px;"></span><b>East Coast Discharge Ports</b></span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--brass);margin-right:4px;"></span><b>Global Origin Basins</b></span>
+            <span><span style="display:inline-block;width:16px;height:2px;background:var(--brass);margin-right:4px;vertical-align:middle;"></span><b>Coking Coal Corridors</b></span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Active Vessels &amp; Contracts</h3>
+          <p style="font-size:12px;color:var(--ink-dim);margin-bottom:12px;">Select any vessel below or from the ledger list on the left to inspect detailed AIS position, IMO specs, and voyage ETA:</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));gap:10px;">
+            ${data.CONTRACTS.map(c => `
+              <div class="card contract-quick-select" data-id="${c.id}" style="margin:0;cursor:pointer;padding:12px;">
+                <div class="card-top">
+                  <span class="card-id">${c.id}</span>
+                  <span class="tag ${c.category}">${c.category}</span>
+                </div>
+                <div class="card-title" style="font-size:13px;margin:6px 0 4px 0;">${c.vesselName}</div>
+                <div class="card-meta" style="font-size:11px;">
+                  <span>${c.commodityName}</span>
+                  <span class="route">${c.originPortCode} → ${c.destPortCode}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function bindGlobalMapEvents(container) {
+    if (!container) return;
+    container.querySelectorAll('.contract-quick-select').forEach(card => {
+      card.addEventListener('click', () => {
+        state.selectedId = card.dataset.id;
+        state.detailSection = 'overview';
+        renderList(document.getElementById('listpane'));
+        renderDetail(container);
+      });
+    });
+  }
+
   function renderDetail(container) {
     if (!container) return;
     const c = data.CONTRACTS.find(x => x.id === state.selectedId);
     if (!c) {
-      container.innerHTML = `<div class="detail-empty"><div class="glyph">॥</div>Select a contract from the ledger list.</div>`;
+      container.innerHTML = renderGlobalMap();
+      bindGlobalMapEvents(container);
       return;
     }
 
@@ -273,15 +454,22 @@ window.LedgerModule = (function() {
           <div class="dn-id">${c.id}</div>
         </div>
         ${sections.map(s => `<button data-sec="${s.id}" class="${state.detailSection === s.id ? 'active' : ''}">${s.label}</button>`).join('')}
+        <button id="btn-show-global-map" class="btn ghost small" style="margin-left:auto;font-size:11px;color:var(--teal);border:1px solid var(--rule-lite);">🌐 Global Map</button>
       </div>
       <div class="detail-content" id="detail-content"></div>
     `;
 
-    container.querySelectorAll('.detail-nav button').forEach(b => {
+    container.querySelectorAll('.detail-nav button[data-sec]').forEach(b => {
       b.addEventListener('click', () => {
         state.detailSection = b.dataset.sec;
         renderDetail(container);
       });
+    });
+
+    container.querySelector('#btn-show-global-map')?.addEventListener('click', () => {
+      state.selectedId = null;
+      renderList(document.getElementById('listpane'));
+      renderDetail(container);
     });
 
     renderDetailContent(c, container.querySelector('#detail-content'));

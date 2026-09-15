@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vyapar Setu — Sign In | Intelligent Freight Forecasting Platform</title>
+  <meta name="description" content="Sign in to Vyapar Setu — India's intelligent freight forecasting and vessel chartering platform for East Coast ports.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       VYAPAR SETU — AUTH PAGE
+       Inspired by ApexFC auth layer: full-screen hero, particles,
+       animated orbs, glassmorphism form card, fade-in animations
+    ═══════════════════════════════════════════════════════════ */
+
+    :root {
+      --paper:       #FBF3E3;
+      --ink:         #2A2016;
+      --ink-dim:     #7C6A4E;
+      --ink-faint:   #A6936F;
+      --brass:       #B9812E;
+      --brass-light: #D4A855;
+      --brass-glow:  rgba(185, 129, 46, 0.4);
+      --teal:        #1E6E63;
+      --teal-glow:   rgba(30, 110, 99, 0.4);
+      --deep-navy:   #0D1B2A;
+      --mid-navy:    #162840;
+      --ocean-blue:  #1B3D5F;
+      --amber:       #C8882A;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── FULL-SCREEN HERO CONTAINER ── */
+    .auth-hero {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0D1B2A 0%, #162840 40%, #0F2233 70%, #1a1208 100%);
+    }
+
+    /* ── BACKGROUND IMAGE (blurred, like ApexFC) ── */
+    .auth-bg-image {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1575373940633-86a0f810da53?w=1920&q=80');
+      background-size: cover;
+      background-position: center 60%;
+      filter: blur(2px) brightness(0.35) saturate(0.7);
+      transform: scale(1.05);
+      animation: slowZoom 25s ease-in-out infinite alternate;
+    }
+
+    @keyframes slowZoom {
+      from { transform: scale(1.05); }
+      to   { transform: scale(1.12); }
+    }
+
+    /* ── GRADIENT OVERLAY (multi-layer like ApexFC) ── */
+    .auth-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 50%, rgba(185,129,46,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 60%, rgba(30,110,99,0.10) 0%, transparent 60%),
+        linear-gradient(135deg, rgba(13,27,42,0.75) 0%, rgba(22,40,64,0.65) 50%, rgba(13,27,42,0.80) 100%);
+    }
+
+    /* ── ANIMATED GLOWING ORBS (from ApexFC pattern) ── */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      animation: orbPulse 6s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    .orb-1 {
+      width: 500px; height: 500px;
+      top: -100px; left: -100px;
+      background: radial-gradient(circle, rgba(185,129,46,0.18) 0%, transparent 70%);
+      animation-delay: 0s; animation-duration: 7s;
+    }
+    .orb-2 {
+      width: 600px; height: 600px;
+      bottom: -150px; right: -150px;
+      background: radial-gradient(circle, rgba(30,110,99,0.16) 0%, transparent 70%);
+      animation-delay: 2s; animation-duration: 9s;
+    }
+    .orb-3 {
+      width: 400px; height: 400px;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(43,91,132,0.10) 0%, transparent 70%);
+      animation-delay: 4s; animation-duration: 11s;
+    }
+    @keyframes orbPulse {
+      from { opacity: 0.6; transform: scale(0.95); }
+      to   { opacity: 1;   transform: scale(1.05); }
+    }
+    .orb-3 { animation-name: orbPulse3; }
+    @keyframes orbPulse3 {
+      from { opacity: 0.6; transform: translate(-50%,-50%) scale(0.95); }
+      to   { opacity: 1;   transform: translate(-50%,-50%) scale(1.08); }
+    }
+
+    /* ── ANIMATED FLOATING PARTICLES (ApexFC key feature) ── */
+    .particles-canvas {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      width: 3px; height: 3px;
+      background: rgba(185,129,46,0.6);
+      border-radius: 50%;
+      animation: floatParticle linear infinite;
+    }
+    .particle:nth-child(odd)  { background: rgba(255,255,255,0.25); width: 2px; height: 2px; }
+    .particle:nth-child(3n)   { background: rgba(30,110,99,0.5); }
+
+    @keyframes floatParticle {
+      0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 0.8; }
+      100% { transform: translateY(-120vh) translateX(40px) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── MAIN LAYOUT: split-screen inspired, centered card ── */
+    .auth-content {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 1100px;
+      padding: 40px 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+    .auth-content.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── LEFT PANEL: Branding & Hero copy ── */
+    .auth-brand {
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .auth-brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .auth-brand-logo-icon {
+      width: 60px; height: 60px;
+      background: linear-gradient(135deg, rgba(185,129,46,0.3), rgba(185,129,46,0.1));
+      border: 1.5px solid rgba(185,129,46,0.5);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 30px rgba(185,129,46,0.25), inset 0 1px 0 rgba(255,255,255,0.1);
+      animation: iconBreathe 4s ease-in-out infinite alternate;
+    }
+    @keyframes iconBreathe {
+      from { box-shadow: 0 0 20px rgba(185,129,46,0.2); }
+      to   { box-shadow: 0 0 45px rgba(185,129,46,0.4), 0 0 80px rgba(185,129,46,0.15); }
+    }
+
+    .auth-brand-name {
+      display: flex;
+      flex-direction: column;
+    }
+    .auth-brand-name h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.01em;
+      line-height: 1.1;
+    }
+    .auth-brand-name span {
+      font-size: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--brass-light);
+      letter-spacing: 0.12em;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    .auth-hero-headline {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(36px, 5vw, 58px);
+      font-weight: 700;
+      line-height: 1.1;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+    .auth-hero-headline .accent {
+      background: linear-gradient(90deg, #D4A855, #B9812E, #e8bc68);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .auth-hero-sub {
+      font-size: 16px;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.65;
+      max-width: 380px;
+      font-weight: 300;
+    }
+
+    /* Animated divider */
+    .auth-divider {
+      height: 1px;
+      max-width: 280px;
+      background: linear-gradient(90deg, rgba(185,129,46,0.8), transparent);
+    }
+
+    /* Stats Row */
+    .auth-stats {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .auth-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .auth-stat-val {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--brass-light);
+      letter-spacing: -0.02em;
+    }
+    .auth-stat-lbl {
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── RIGHT PANEL: Glassmorphism Auth Card ── */
+    .auth-card {
+      background: rgba(251, 243, 227, 0.07);
+      backdrop-filter: blur(24px) saturate(1.4);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      border: 1px solid rgba(185, 129, 46, 0.25);
+      border-radius: 24px;
+      padding: 44px 40px;
+      box-shadow:
+        0 32px 80px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 1px 0 rgba(255,255,255,0.08) inset;
+      transition: box-shadow 0.4s ease;
+    }
+    .auth-card:hover {
+      box-shadow:
+        0 40px 100px rgba(0,0,0,0.55),
+        0 0 60px rgba(185,129,46,0.1),
+        0 0 0 1px rgba(255,255,255,0.05) inset,
+        0 1px 0 rgba(255,255,255,0.10) inset;
+    }
+
+    .auth-card-header {
+      margin-bottom: 32px;
+    }
+    .auth-card-header h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .auth-card-header p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    /* Role selector tabs */
+    .role-tabs {
+      display: flex;
+      gap: 0;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 28px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .role-tab {
+      flex: 1;
+      padding: 9px 12px;
+      border: none;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      color: rgba(255,255,255,0.45);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .role-tab.active {
+      background: rgba(185,129,46,0.2);
+      color: var(--brass-light);
+      border: 1px solid rgba(185,129,46,0.35);
+      box-shadow: 0 2px 8px rgba(185,129,46,0.2);
+    }
+    .role-tab:hover:not(.active) {
+      color: rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* Form fields */
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    .form-input {
+      width: 100%;
+      padding: 13px 16px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(185,129,46,0.2);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      outline: none;
+      transition: all 0.25s ease;
+    }
+    .form-input::placeholder { color: rgba(255,255,255,0.25); }
+    .form-input:focus {
+      border-color: rgba(185,129,46,0.6);
+      background: rgba(0,0,0,0.45);
+      box-shadow: 0 0 0 3px rgba(185,129,46,0.12);
+    }
+    .form-input:focus-visible { outline: none; }
+
+    /* Password wrapper */
+    .input-wrapper { position: relative; }
+    .input-toggle {
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer; padding: 0;
+      color: rgba(255,255,255,0.3);
+      font-size: 13px;
+      transition: color 0.2s;
+    }
+    .input-toggle:hover { color: var(--brass-light); }
+
+    /* Remember + Forgot row */
+    .form-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .remember-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.45);
+    }
+    .remember-label input[type="checkbox"] {
+      accent-color: var(--brass);
+      width: 14px; height: 14px;
+    }
+    .forgot-link {
+      font-size: 12.5px;
+      color: var(--brass-light);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .forgot-link:hover { color: #e8bc68; }
+
+    /* Primary CTA Button */
+    .btn-signin {
+      width: 100%;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, #B9812E, #9A6B20);
+      border: 1px solid rgba(185,129,46,0.5);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(185,129,46,0.3);
+      letter-spacing: 0.02em;
+    }
+    .btn-signin::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+      transition: left 0.5s ease;
+    }
+    .btn-signin:hover {
+      background: linear-gradient(135deg, #C8882A, #B9812E);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(185,129,46,0.45);
+    }
+    .btn-signin:hover::before { left: 100%; }
+    .btn-signin:active { transform: translateY(0); }
+
+    .btn-signin .arrow {
+      transition: transform 0.3s ease;
+    }
+    .btn-signin:hover .arrow { transform: translateX(4px); }
+
+    /* Spinner inside btn */
+    .btn-signin.loading .btn-text { display: none; }
+    .btn-signin.loading .btn-spinner { display: block !important; }
+
+    .btn-spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Divider */
+    .card-sep {
+      position: relative;
+      text-align: center;
+      margin: 22px 0;
+    }
+    .card-sep::before {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      top: 50%;
+      height: 1px;
+      background: rgba(255,255,255,0.09);
+    }
+    .card-sep span {
+      position: relative;
+      display: inline-block;
+      background: transparent;
+      padding: 0 12px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    /* Demo credentials panel */
+    .demo-panel {
+      background: rgba(30,110,99,0.12);
+      border: 1px solid rgba(30,110,99,0.25);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .demo-panel-title {
+      font-size: 10.5px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: rgba(30,110,99,0.9);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .demo-cred-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .demo-cred {
+      flex: 1;
+      min-width: 140px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 7px;
+      padding: 8px 12px;
+      cursor: pointer;
+      border: 1px solid rgba(30,110,99,0.2);
+      transition: all 0.2s ease;
+    }
+    .demo-cred:hover {
+      background: rgba(30,110,99,0.15);
+      border-color: rgba(30,110,99,0.4);
+    }
+    .demo-cred-label {
+      font-size: 10px;
+      color: rgba(30,110,99,0.8);
+      font-family: 'IBM Plex Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .demo-cred-val {
+      font-size: 12px;
+      color: rgba(255,255,255,0.65);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    /* Error shake */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%  { transform: translateX(-8px); }
+      40%  { transform: translateX(8px); }
+      60%  { transform: translateX(-5px); }
+      80%  { transform: translateX(5px); }
+    }
+    .shake { animation: shake 0.4s ease; }
+
+    .form-error {
+      font-size: 11.5px;
+      color: #f08080;
+      margin-top: 20px;
+      text-align: center;
+      padding: 10px 14px;
+      background: rgba(166,57,44,0.15);
+      border-radius: 8px;
+      border: 1px solid rgba(166,57,44,0.3);
+      display: none;
+    }
+    .form-error.visible { display: block; }
+
+    /* ── SCROLL INDICATOR (ApexFC pattern) ── */
+    .scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.4);
+      font-size: 11px;
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      animation: fadeInUp 1.5s ease 2s both;
+      cursor: default;
+    }
+    .scroll-hint svg {
+      animation: bounceDown 1.8s ease-in-out infinite;
+    }
+    @keyframes bounceDown {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(6px); }
+    }
+
+    /* ── FOOTER STRIP ── */
+    .auth-footer {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      background: rgba(13,27,42,0.6);
+      backdrop-filter: blur(10px);
+      z-index: 20;
+    }
+    .auth-footer-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .pulse-dot-sm {
+      width: 6px; height: 6px;
+      background: #1E6E63;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 0 rgba(30,110,99,0.4);
+      animation: pulseDot 2s infinite;
+    }
+    @keyframes pulseDot {
+      0%   { box-shadow: 0 0 0 0 rgba(30,110,99,0.7); }
+      70%  { box-shadow: 0 0 0 5px rgba(30,110,99,0); }
+      100% { box-shadow: 0 0 0 0 rgba(30,110,99,0); }
+    }
+    .auth-footer-links {
+      display: flex;
+      gap: 20px;
+    }
+    .auth-footer-links a {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+    .auth-footer-links a:hover { color: var(--brass-light); }
+
+    /* Fade-in utility */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 840px) {
+      .auth-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        text-align: center;
+        max-width: 440px;
+      }
+      .auth-brand { align-items: center; }
+      .auth-brand-logo { justify-content: center; }
+      .auth-hero-sub { text-align: center; margin: 0 auto; }
+      .auth-divider { margin: 0 auto; }
+      .auth-stats { justify-content: center; }
+      .auth-footer { display: none; }
+      .scroll-hint { display: none; }
+    }
+    @media (max-width: 480px) {
+      .auth-card { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─────────────────────────────────────────
+       HERO WRAPPER
+  ───────────────────────────────────────── -->
+  <div class="auth-hero" id="authHero">
+
+    <!-- Blurred background image -->
+    <div class="auth-bg-image"></div>
+
+    <!-- Gradient overlays -->
+    <div class="auth-overlay"></div>
+
+    <!-- Animated orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Floating particles (generated by JS) -->
+    <div class="particles-canvas" id="particlesCanvas"></div>
+
+    <!-- ───── MAIN CONTENT ───── -->
+    <div class="auth-content" id="authContent">
+
+      <!-- LEFT: Branding panel -->
+      <div class="auth-brand">
+        <!-- Logo + Name -->
+        <div class="auth-brand-logo">
+          <div class="auth-brand-logo-icon">
+            <svg width="32" height="32" viewBox="0 0 30 30" fill="none">
+              <path d="M4 21c2 2 4 2 6 0s4-2 6 0 4 2 6 0 4-2 4-2" stroke="#B9812E" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M15 4v13" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M15 6l7 3-7 8-7-8 7-3z" stroke="#ffffff" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="auth-brand-name">
+            <h1>Vyapar Setu</h1>
+            <span>SIH 2026 · v5.0</span>
+          </div>
+        </div>
+
+        <!-- Headline -->
+        <h2 class="auth-hero-headline">
+          Navigate<br>
+          <span class="accent">Smarter.</span><br>
+          Trade Better.
+        </h2>
+
+        <div class="auth-divider"></div>
+
+        <p class="auth-hero-sub">
+          Intelligent freight forecasting & vessel chartering platform for India's East Coast — powered by Prophet + XGBoost ensemble AI.
+        </p>
+
+        <!-- Stats row -->
+        <div class="auth-stats">
+          <div class="auth-stat">
+            <span class="auth-stat-val">7</span>
+            <span class="auth-stat-lbl">East Coast Ports</span>
+          </div>
+          <div class="auth-stat">
+            <span class="auth-stat-val">~8%</span>
+            <span class="auth-stat-lbl">Forecast MAPE</span>
+          </div>
+          <div class="auth-stat">
+            <span class="auth-stat-val">3</span>
+            <span class="auth-stat-lbl">PSU Operators</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Glassmorphism auth card -->
+      <div class="auth-card" id="authCard">
+
+        <div class="auth-card-header">
+          <h2>Welcome back</h2>
+          <p>Sign in to access the platform dashboard</p>
+        </div>
+
+        <!-- Role selector tabs -->
+        <div class="role-tabs" id="roleTabs">
+          <button class="role-tab active" data-role="operator" id="tab-operator">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+            Operator
+          </button>
+          <button class="role-tab" data-role="analyst" id="tab-analyst">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Analyst
+          </button>
+          <button class="role-tab" data-role="admin" id="tab-admin">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Admin
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" autocomplete="on">
+          <div class="form-group">
+            <label class="form-label" for="email">Email / User ID</label>
+            <input
+              class="form-input" type="text" id="email" name="email"
+              placeholder="operator@sail.gov.in"
+              autocomplete="username"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <div class="input-wrapper">
+              <input
+                class="form-input" type="password" id="password" name="password"
+                placeholder="••••••••••••"
+                autocomplete="current-password"
+                required
+              >
+              <button type="button" class="input-toggle" id="togglePwd" title="Show/hide password" aria-label="Toggle password visibility">
+                <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-meta">
+            <label class="remember-label">
+              <input type="checkbox" id="rememberMe"> Keep me signed in
+            </label>
+            <a href="#" class="forgot-link" id="forgotLink">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn-signin" id="signinBtn">
+            <span class="btn-text" style="display:flex;align-items:center;gap:10px;">
+              Access Platform
+              <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </span>
+            <div class="btn-spinner"></div>
+          </button>
+
+          <div class="form-error" id="formError">
+            ⚠ Invalid credentials. Please verify your User ID and password.
+          </div>
+        </form>
+
+        <!-- Separator -->
+        <div class="card-sep"><span>or use demo credentials</span></div>
+
+        <!-- Demo credentials quick-fill -->
+        <div class="demo-panel">
+          <div class="demo-panel-title">⚡ Quick Demo Access</div>
+          <div class="demo-cred-row">
+            <div class="demo-cred" onclick="fillDemo('operator@sail.gov.in','demo1234','operator')" title="Fill operator credentials">
+              <div class="demo-cred-label">Operator</div>
+              <div class="demo-cred-val">operator@sail.gov.in</div>
+            </div>
+            <div class="demo-cred" onclick="fillDemo('analyst@rinl.gov.in','demo1234','analyst')" title="Fill analyst credentials">
+              <div class="demo-cred-label">Analyst</div>
+              <div class="demo-cred-val">analyst@rinl.gov.in</div>
+            </div>
+            <div class="demo-cred" onclick="fillDemo('admin@mmb.gov.in','demo1234','admin')" title="Fill admin credentials">
+              <div class="demo-cred-label">Admin</div>
+              <div class="demo-cred-val">admin@mmb.gov.in</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /auth-card -->
+    </div><!-- /auth-content -->
+
+    <!-- Scroll hint (ApexFC pattern) -->
+    <div class="scroll-hint">
+      <span>Scroll for platform info</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M5 12l7 7 7-7"/>
+      </svg>
+    </div>
+
+    <!-- Footer strip -->
+    <div class="auth-footer">
+      <div class="auth-footer-status">
+        <span class="pulse-dot-sm"></span>
+        Vyapar Setu Platform Online · 7 East Coast Ports Monitored
+      </div>
+      <div class="auth-footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Support</a>
+        <a href="index.html">← Back to Platform</a>
+      </div>
+    </div>
+
+  </div><!-- /auth-hero -->
+
+
+  <!-- ─────────────────────────────────────────
+       JAVASCRIPT: Auth logic (ApexFC pattern)
+  ───────────────────────────────────────── -->
+  <script>
+    /* ── 1. FADE-IN on load (ApexFC isVisible pattern) ─── */
+    window.addEventListener('DOMContentLoaded', () => {
+      requestAnimationFrame(() => {
+        document.getElementById('authContent').classList.add('visible');
+      });
+      generateParticles();
+      checkAlreadyLoggedIn();
+    });
+
+    /* ── 2. CHECK EXISTING SESSION ─── */
+    function checkAlreadyLoggedIn() {
+      const token = localStorage.getItem('vs_token');
+      if (token) {
+        // Already authenticated — redirect to main platform
+        window.location.replace('index.html');
+      }
+    }
+
+    /* ── 3. PARTICLES (ApexFC animated particles pattern) ─── */
+    function generateParticles() {
+      const canvas = document.getElementById('particlesCanvas');
+      const count = 28;
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.cssText = `
+          left: ${Math.random() * 100}%;
+          top: ${100 + Math.random() * 20}%;
+          animation-duration: ${5 + Math.random() * 10}s;
+          animation-delay: ${-Math.random() * 12}s;
+          width: ${1 + Math.random() * 3}px;
+          height: ${1 + Math.random() * 3}px;
+          opacity: ${0.2 + Math.random() * 0.5};
+        `;
+        canvas.appendChild(p);
+      }
+    }
+
+    /* ── 4. ROLE TAB SELECTION ─── */
+    let selectedRole = 'operator';
+    const roleTabs = document.querySelectorAll('.role-tab');
+    roleTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        roleTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        selectedRole = tab.dataset.role;
+
+        // Update placeholder to match role
+        const placeholders = {
+          operator: 'operator@sail.gov.in',
+          analyst:  'analyst@rinl.gov.in',
+          admin:    'admin@mmb.gov.in'
+        };
+        document.getElementById('email').placeholder = placeholders[selectedRole];
+      });
+    });
+
+    /* ── 5. PASSWORD TOGGLE ─── */
+    document.getElementById('togglePwd').addEventListener('click', () => {
+      const pwd = document.getElementById('password');
+      const icon = document.getElementById('eyeIcon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+      } else {
+        pwd.type = 'password';
+        icon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+      }
+    });
+
+    /* ── 6. DEMO CREDENTIAL QUICK-FILL ─── */
+    function fillDemo(email, pwd, role) {
+      document.getElementById('email').value = email;
+      document.getElementById('password').value = pwd;
+
+      // Activate matching role tab
+      roleTabs.forEach(t => {
+        t.classList.toggle('active', t.dataset.role === role);
+      });
+      selectedRole = role;
+
+      // Flash the card to signal fill
+      const card = document.getElementById('authCard');
+      card.style.borderColor = 'rgba(30,110,99,0.6)';
+      card.style.boxShadow = '0 0 40px rgba(30,110,99,0.2), 0 32px 80px rgba(0,0,0,0.5)';
+      setTimeout(() => {
+        card.style.borderColor = '';
+        card.style.boxShadow = '';
+      }, 700);
+    }
+
+    /* ── 7. FORM SUBMISSION & AUTH ─── */
+    const DEMO_USERS = {
+      'operator@sail.gov.in': { password: 'demo1234', role: 'operator', name: 'SAIL Operator', org: 'SAIL' },
+      'analyst@rinl.gov.in':  { password: 'demo1234', role: 'analyst',  name: 'RINL Analyst',  org: 'RINL' },
+      'admin@mmb.gov.in':     { password: 'demo1234', role: 'admin',    name: 'MMB Admin',     org: 'MMB'  },
+    };
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('signinBtn');
+      const errorEl = document.getElementById('formError');
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const password = document.getElementById('password').value;
+      const remember = document.getElementById('rememberMe').checked;
+
+      // Show loading state
+      btn.classList.add('loading');
+      errorEl.classList.remove('visible');
+
+      // Simulate async auth (replace with real API call to /api/auth/login)
+      await simulateDelay(900);
+
+      const user = DEMO_USERS[email];
+      if (user && user.password === password) {
+        // ✅ Success — store session
+        const session = {
+          email,
+          role: user.role,
+          name: user.name,
+          org: user.org,
+          token: btoa(`${email}:${Date.now()}`),
+          expiresAt: Date.now() + (remember ? 7 * 86400000 : 86400000),
+        };
+        localStorage.setItem('vs_token', session.token);
+        localStorage.setItem('vs_user', JSON.stringify(session));
+
+        // Success flash then redirect
+        btn.style.background = 'linear-gradient(135deg, #1E6E63, #165952)';
+        btn.classList.remove('loading');
+        btn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>Authenticated — Redirecting…</span>
+        `;
+        setTimeout(() => {
+          window.location.replace('index.html');
+        }, 800);
+
+      } else {
+        // ❌ Failure
+        btn.classList.remove('loading');
+        errorEl.classList.add('visible');
+        const card = document.getElementById('authCard');
+        card.classList.add('shake');
+        setTimeout(() => card.classList.remove('shake'), 500);
+      }
+    });
+
+    function simulateDelay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    /* ── 8. FORGOT PASSWORD TOAST ─── */
+    document.getElementById('forgotLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      showToast('Contact your platform administrator to reset your password.');
+    });
+
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.style.cssText = `
+        position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+        background:rgba(13,27,42,0.95);border:1px solid rgba(185,129,46,0.4);
+        color:rgba(255,255,255,0.85);padding:12px 22px;border-radius:10px;
+        font-size:13px;font-family:'Inter',sans-serif;z-index:9999;
+        backdrop-filter:blur(12px);box-shadow:0 8px 32px rgba(0,0,0,0.4);
+        animation:fadeInUp 0.3s ease;
+      `;
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+  </script>
+</body>
+</html>
